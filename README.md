@@ -1,6 +1,6 @@
 # SITTA UT — Sistem Informasi Tiras dan Transaksi Bahan Ajar<Br>
 ### Tugas Praktik 3 (STSI4209 Pemrograman Berbasis Web)<Br>
-**Program Studi S1 Sistem Informasi — Universitas Terbuka**<Br>
+**Program Studi S1 Sistem Informasi - Universitas Terbuka**<Br>
 LAPORAN TUGAS 3 TUTORIAL ONLINE MATA KULIAH PEMROGRAMAN BERBASIS WEB STSI4209<Br>
 DISUSUN OLEH<Br>
 NAMA	: FADLILLAH<Br>

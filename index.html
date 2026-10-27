@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SITTA UT - Sistem Informasi Tiras & Transaksi Bahan Ajar</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        ut: {
+                            blue: '#003366',
+                            bluelight: '#0d47a1',
+                            amber: '#f59e0b',
+                            gold: '#ffcc00'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Vue.js 2.7 CDN (Mendukung Konsep Component, Template, Filters Pipe, Watchers, dan Directives) -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.js"></script>
+
+    <!-- Style Kustom & Animasi -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white">
+
+    <!-- Root Instance Vue.js (Single Page Application - SPA) -->
+    <div id="app" class="flex-1 flex flex-col">
+
+        <!-- 1. Komponen Navbar / Header Navigasi -->
+        <app-navbar 
+            :active-tab="activeTab"
+            :cart-count="cart.length"
+            :stok-kritis-count="stokKritisCount"
+            :is-dark-mode="isDarkMode"
+            @switch-tab="switchTab"
+            @toggle-dark-mode="toggleDarkMode">
+        </app-navbar>
+
+        <!-- Banner Info Akademik UT -->
+        <div class="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white text-xs py-2 px-4 shadow-inner no-print">
+            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span class="font-semibold">Portal Layanan Distribusi Bahan Ajar Semester 2025/2026 Ganjil</span>
+                </div>
+                <div class="text-[11px] text-blue-200">
+                    STSI4209 Pemrograman Berbasis Web • Tugas Praktik 3
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Konten Utama SPA Berdasarkan Tab Aktif (Menerapkan Conditional v-if, v-else-if, v-else) -->
+        <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            
+            <transition name="fade" mode="out-in">
+                
+                <!-- Tab 1: Katalog & Datatable Stok Bahan Ajar -->
+                <katalog-stok 
+                    v-if="activeTab === 'katalog'"
+                    key="katalog"
+                    :stok-list="stokList"
+                    :upbjj-list="upbjjList"
+                    :kategori-list="kategoriList"
+                    :is-loading="isLoading"
+                    @tambah-ke-pesanan="handleTambahKePesanan"
+                    @lihat-detail="handleLihatDetail">
+                </katalog-stok>
+
+                <!-- Tab 2: Formulir Pemesanan Delivery Order (DO) -->
+                <form-pemesanan 
+                    v-else-if="activeTab === 'pemesanan'"
+                    key="pemesanan"
+                    :stok-list="stokList"
+                    :paket-list="paketList"
+                    :pengiriman-list="pengirimanList"
+                    :upbjj-list="upbjjList"
+                    :cart="cart"
+                    @tambah-item-keranjang="handleTambahItemKeranjang"
+                    @hapus-item-keranjang="handleHapusItemKeranjang"
+                    @submit-pesanan="handleSubmitPesanan"
+                    @lihat-tracking="handleLihatTracking">
+                </form-pemesanan>
+
+                <!-- Tab 3: Pelacakan Kiriman DO (Tracking) -->
+                <tracking-do 
+                    v-else-if="activeTab === 'tracking'"
+                    key="tracking"
+                    :tracking-list="trackingList"
+                    :selected-do-number="selectedDoNumber"
+                    @buka-cetak-do="handleBukaCetakDO">
+                </tracking-do>
+
+                <!-- Tab 4: Dashboard & Rekapitulasi Statistik -->
+                <dashboard-stats 
+                    v-else-if="activeTab === 'dashboard'"
+                    key="dashboard"
+                    :stok-list="stokList"
+                    :paket-list="paketList"
+                    :tracking-list="trackingList"
+                    :upbjj-list="upbjjList"
+                    @switch-tab="switchTab">
+                </dashboard-stats>
+
+            </transition>
+
+        </main>
+
+        <!-- 3. Komponen Modal Detail & Cetak Resi DO -->
+        <modal-detail 
+            :is-open="isModalOpen"
+            :modal-type="modalType"
+            :data-item="modalData"
+            @close="closeModal">
+        </modal-detail>
+
+        <!-- 4. Notifikasi Toast Mengambang (Floating Feedback) -->
+        <div 
+            v-if="showToast" 
+            class="fixed bottom-6 right-6 z-50 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 py-3 rounded-2xl shadow-xl flex items-center space-x-3 text-xs font-semibold animate-bounce border border-slate-700 dark:border-slate-200">
+            <svg class="w-4 h-4 text-emerald-400 dark:text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span>{{ toastMessage }}</span>
+        </div>
+
+        <!-- 5. Footer SITTA UT -->
+        <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-6 mt-12 no-print">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center sm:flex sm:items-center sm:justify-between text-xs text-slate-500 dark:text-slate-400 space-y-2 sm:space-y-0">
+                <div class="flex items-center justify-center sm:justify-start space-x-2">
+                    <span class="font-extrabold text-blue-900 dark:text-blue-400">SITTA UT</span>
+                    <span>•</span>
+                    <span>Sistem Informasi Tiras & Distribusi Bahan Ajar</span>
+                </div>
+                <div>
+                    <span>Universitas Terbuka (UT) &copy; 2025. Menggunakan Vue.js Framework & Tailwind CSS.</span>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Script Dependensi & Komponen Modular -->
+    <!-- Fallback Dataset (Menjamin berjalan optimal via file:// maupun http://) -->
+    <script src="js/dataFallback.js"></script>
+    
+    <!-- Filter Formatting Teks (Indikator 7) -->
+    <script src="js/filters.js"></script>
+
+    <!-- Komponen Modular Vue (Indikator 1 & 8) -->
+    <script src="js/components/Navbar.js"></script>
+    <script src="js/components/KatalogStok.js"></script>
+    <script src="js/components/FormPemesanan.js"></script>
+    <script src="js/components/TrackingDO.js"></script>
+    <script src="js/components/ModalDetail.js"></script>
+    <script src="js/components/DashboardStats.js"></script>
+
+    <!-- Root Instance Inisialisasi Vue App -->
+    <script src="js/app.js"></script>
+</body>
+</html>
